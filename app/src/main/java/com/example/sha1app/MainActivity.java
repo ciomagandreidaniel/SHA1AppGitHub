@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -95,22 +96,13 @@ public class MainActivity extends AppCompatActivity {
                     Imaginea este salvata intr-0 variabila de tip bitmap, apoi hashing-ul are loc asupra unui vector care contine
                     valoarea tuturor bitilor din imagine, la care se adauga si data exacta cand a fost realizat fisierul pozei
                      */
-                    BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inPreferredConfig = Bitmap.Config.ALPHA_8;
-                    Bitmap bmp = BitmapFactory.decodeFile(imgDecodableString,options);
+
+                    Bitmap bmp = BitmapFactory.decodeFile(imgDecodableString);
                     int[] pixels = new int[bmp.getHeight()*bmp.getWidth()];
                     bmp.getPixels(pixels,0,bmp.getWidth(),0,0,bmp.getWidth()-1,bmp.getHeight()-1);
-                    //String idata = Arrays.toString(pixels);
 
-                    int n = pixels.length;
 
-                    int[] pixelsA = Arrays.copyOfRange(pixels,0,n/2);
-                    int[] pixelsB = Arrays.copyOfRange(pixels,n/2,n);
-                    String idataA = Arrays.toString(pixelsA);
-                    String idataB = Arrays.toString(pixelsB);
 
-                    String sha1A = encryptThisString(idataA);
-                    String sha1B = encryptThisString(idataB);
 
                     String date;
 
@@ -128,9 +120,12 @@ public class MainActivity extends AppCompatActivity {
 
                     date = intf.getAttribute(ExifInterface.TAG_DATETIME);
 
-                    String sha1images = encryptThisString(sha1A+sha1B+date);
-                    sha1image.setText(sha1images);
+                    String idata1 = encryptThisIntegerArray(pixels);
+                    //String idata2 = encryptThisString(date);
 
+                    String sha1images = encryptThisString(idata1);//+idata2);
+
+                    sha1image.setText(sha1images);
                     imageView.setImageBitmap(bmp);
                     dateText.setText("Date: " + date);
 
@@ -138,6 +133,44 @@ public class MainActivity extends AppCompatActivity {
             }
 
     }
+    //algoritmul de criptare a stringului
+    public static String encryptThisIntegerArray(int[] input)
+    {
+        try {
+            // metoda getInstance() preia algoritmul SHA-1
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+
+            // metoda digest() este apelata pentru a calcula hash-ul intrarii
+            //si returneaza o matrice de biti
+
+            ByteBuffer byteBuffer = ByteBuffer.allocate(input.length * 4);
+            IntBuffer intBuffer = byteBuffer.asIntBuffer();
+            intBuffer.put(input);
+            byte[] array = byteBuffer.array();
+
+            byte[] messageDigest = md.digest(array);
+
+            // Convert byte array into signum representation
+            BigInteger no = new BigInteger(1, messageDigest);
+
+            // Convert message digest into hex value
+            String hashtext = no.toString(16);
+
+            // Add preceding 0s to make it 32 bit
+            while (hashtext.length() < 32) {
+                hashtext = "0" + hashtext;
+            }
+
+            // return the HashText
+            return hashtext;
+        }
+
+        // pentru preluarea algoritmilor inexistenti
+        catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     //algoritmul de criptare a stringului
     public static String encryptThisString(String input)
     {
@@ -147,6 +180,8 @@ public class MainActivity extends AppCompatActivity {
 
             // metoda digest() este apelata pentru a calcula hash-ul intrarii
             //si returneaza o matrice de biti
+
+
             byte[] messageDigest = md.digest(input.getBytes());
 
             // Convert byte array into signum representation

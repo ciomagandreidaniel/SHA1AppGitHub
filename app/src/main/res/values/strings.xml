@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">ImageSHA1</string>
+    <string name="opengallery_key">Open Gallery</string>
+    <string name="imageView_key">imageView</string>
+    <string name="imagesha1_key">The hash value of image</string>
+    <string name="datetime_key">Date</string>
+    <string name="sha1bt_key">Waiting for data</string>
+    <string name="bt_key">Bluetooth Menu</string>
+    <string name="bton_key">BT</string>
+    <string name="bluetoothmeny_key">Bluetooth Menu</string>
+    <string name="enabledisc_key">Discoverability</string>
+    <string name="discover_key">Discover</string>
+    <string name="startconnection_key">Start connection</string>
+    <string name="sendbutton_key">Send</string>
+    <string name="finish_key">Send Signature</string>
+    <string name="digital_signature"></string>
+    <string name="attachPhoneAddress">AttachAddress</string>
+</resources>

@@ -1,5 +1,7 @@
 package com.example.sha1app;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
@@ -8,8 +10,11 @@ import android.database.Cursor;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.ImageDecoder;
 import android.media.ExifInterface;
+import android.media.Image;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -59,7 +64,8 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(intent,GALLERY_REQUEST_CODE);
     }
 //onActivityResult la selectarea imaginilor
-    public void onActivityResult(int requestCode,int resultCode,Intent data) {
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         // codul returneaza RESULT_OK doar daca o imagine este selectata
         super.onActivityResult(requestCode, resultCode, data);
@@ -87,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
                     cursor.close();
 
                     //preia data imaginii
-                    File file = new File(imgDecodableString);
+                    final File file = new File(imgDecodableString);
 
 
                     //criptarea metadate-lor
@@ -97,7 +103,9 @@ public class MainActivity extends AppCompatActivity {
                     valoarea tuturor bitilor din imagine, la care se adauga si data exacta cand a fost realizat fisierul pozei
                      */
 
+
                     Bitmap bmp = BitmapFactory.decodeFile(imgDecodableString);
+
                     int[] pixels = new int[bmp.getHeight()*bmp.getWidth()];
                     bmp.getPixels(pixels,0,bmp.getWidth(),0,0,bmp.getWidth()-1,bmp.getHeight()-1);
 
@@ -121,11 +129,13 @@ public class MainActivity extends AppCompatActivity {
                     date = intf.getAttribute(ExifInterface.TAG_DATETIME);
 
                     String idata1 = encryptThisIntegerArray(pixels);
-                    String idata2 = encryptThisString(date);
+                    //String idata2 = encryptThisString(date);
 
                     String sha1images = encryptThisString(idata1);//+idata2);
 
                     sha1image.setText(sha1images);
+
+
                     imageView.setImageBitmap(bmp);
                     dateText.setText("Date: " + date);
 

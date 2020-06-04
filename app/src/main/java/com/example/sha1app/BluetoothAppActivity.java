@@ -42,7 +42,6 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
 
     //variabilele unde salvam numele si MAC-ul dispozitivului cu care se face legatura
 
-    String phoneDeviceName;
     String phoneDeviceMAC;
 
     Button btnAttachAddress;
@@ -407,7 +406,6 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
         String deviceAddress = mBTDevices.get(i).getAddress();
 
         phoneDeviceMAC = deviceAddress;
-        phoneDeviceName = deviceName;
         btnAttachAddress.setVisibility(View.VISIBLE);
 
         Log.d(TAG, "onItemClick: deviceName = " + deviceName);
@@ -466,7 +464,7 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
 
     public void attachAddress(View view)
     {
-        writeToFile("-"+phoneDeviceName+"-"+phoneDeviceMAC, this);
+        writeToFile("-"+phoneDeviceMAC, this);
         Toast.makeText(getApplicationContext(),"The phone address is attached to hash!",Toast.LENGTH_SHORT).show();
 
     }

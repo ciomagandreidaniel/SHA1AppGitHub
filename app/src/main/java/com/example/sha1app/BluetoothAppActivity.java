@@ -42,6 +42,8 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
 
     //variabilele unde salvam numele si MAC-ul dispozitivului cu care se face legatura
 
+    public static TextView btMenu;
+
     String phoneDeviceMAC;
 
     Button btnAttachAddress;
@@ -221,6 +223,8 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bluetooth_app);
 
+        btMenu = findViewById(R.id.textView4);
+
         //se instantiaza variabilele pentru semnatura digitala primita de la pc
         digitalSignature = (TextView) findViewById(R.id.digitalSignature);
         signature = new StringBuilder();
@@ -320,6 +324,8 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
     public void startBTConnection(BluetoothDevice device, UUID uuid){
         Log.d(TAG, "startBTConnection: Initializing RFCOM Bluetooth Connection.");
         mBluetoothConnection.startClient(device,uuid);
+        btMenu.setText("Bluetooth Menu - Connected");
+        btMenu.setBackgroundColor(Color.GREEN);
     }
 
     //atunci cand se pasa butonul de pornire sau oprire Bluetooth

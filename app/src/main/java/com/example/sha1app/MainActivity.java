@@ -143,35 +143,35 @@ public class MainActivity extends AppCompatActivity {
             }
 
     }
-    //algoritmul de criptare a stringului
+    //algoritmul de criptare a sirului de intregi
     public static String encryptThisIntegerArray(int[] input)
     {
         try {
             // metoda getInstance() preia algoritmul SHA-1
             MessageDigest md = MessageDigest.getInstance("SHA-1");
 
-            // metoda digest() este apelata pentru a calcula hash-ul intrarii
-            //si returneaza o matrice de biti
-
+            //se converteste sirul de intregi intr-unul de octeti
             ByteBuffer byteBuffer = ByteBuffer.allocate(input.length * 4);
             IntBuffer intBuffer = byteBuffer.asIntBuffer();
             intBuffer.put(input);
             byte[] array = byteBuffer.array();
 
+            // metoda digest() este apelata pentru a calcula hash-ul intrarii
+            //si returneaza un sir de octeti
             byte[] messageDigest = md.digest(array);
 
-            // Convert byte array into signum representation
+            // octetii se convertesc intr-o reprezentare cu semn pozitiv
             BigInteger no = new BigInteger(1, messageDigest);
 
-            // Convert message digest into hex value
+            // amprenta este convertita in caractere ascii
             String hashtext = no.toString(16);
 
-            // Add preceding 0s to make it 32 bit
+            // se adauga zerouri pentru a completa cei 32 de biti
             while (hashtext.length() < 32) {
                 hashtext = "0" + hashtext;
             }
 
-            // return the HashText
+            // returneaza codul hash
             return hashtext;
         }
 

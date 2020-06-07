@@ -271,10 +271,16 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
         public void onReceive(Context context, Intent intent) {
             String text = intent.getStringExtra("theMessage");
             signature.append(text);
-            setStrDigitalSignature(signature.toString());
-            digitalSignature.setText("Digital signature received");
-            digitalSignature.setBackgroundColor(Color.GREEN);
-            btnSendSignature.setVisibility(View.VISIBLE);
+            digitalSignature.setText(signature.toString());
+            if( signature.toString().equals("Valid Signature")) {
+                digitalSignature.setBackgroundColor(Color.GREEN);
+                //btnSendSignature.setVisibility(View.VISIBLE);
+            }
+            else
+            {
+                digitalSignature.setBackgroundColor(Color.RED);
+                //btnSendSignature.setVisibility(View.VISIBLE);
+            }
         }
     };
 

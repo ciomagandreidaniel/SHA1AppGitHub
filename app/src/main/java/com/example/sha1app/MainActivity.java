@@ -3,9 +3,14 @@ package com.example.sha1app;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.FileProvider;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 
 import android.graphics.Bitmap;
@@ -16,6 +21,7 @@ import android.media.Image;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -32,6 +38,7 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -40,10 +47,15 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXTRA_MESSAGE2 = "com.example.sha1app.MESSAGE2";//extra la data
     public static final String EXTRA_MESSAGE3 = "com.example.sha1app.MESSAGE3";//extra atunci cand n a fost selectat nimic
     static final int GALLERY_REQUEST_CODE = 1;
+    private static final int CAMERA_REQUEST_CODE = 2;
     ImageView imageView;
     TextView sha1image;
     TextView dateText;
     private static final String TAG = "MyActivity";
+
+    //Tesing
+    private String cameraFilePath;
+    //Testing
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,7 +152,14 @@ public class MainActivity extends AppCompatActivity {
                     dateText.setText("Date: " + date);
 
                     break;
+                //testing
+                case CAMERA_REQUEST_CODE:
+                    imageView.setImageURI(Uri.parse(cameraFilePath));
+                    break;
+                    //testing
             }
+
+
 
     }
     //algoritmul de criptare a sirului de intregi
@@ -235,5 +254,72 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    /**Version in test
+     * Trying to take a photo with camera
+     */
 
-}
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        //This is the directory in which the file will be created. This is the default location of Camera photos
+        File storageDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DCIM), "Camera");
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+        // Save a file: path for using again
+        cameraFilePath = "file://" + image.getAbsolutePath();
+        return image;
+    }
+
+    public void captureFromCamera(View view) {
+        if(checkCameraHardware(this)==true && isStoragePermissionGranted()==true) {
+            try {
+
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".provider", createImageFile()));
+                startActivityForResult(intent, CAMERA_REQUEST_CODE);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    /** Check if this device has a camera */
+    private boolean checkCameraHardware(Context context) {
+        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
+            // this device has a camera
+            return true;
+        } else {
+            // no camera on this device
+            return false;
+        }
+    }
+
+        public  boolean isStoragePermissionGranted()
+            {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        == PackageManager.PERMISSION_GRANTED) {
+                    Log.v(TAG,"Permission is granted");
+                    return true;
+                } else {
+
+                    Log.v(TAG,"Permission is revoked");
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                    return false;
+                }
+            }
+            else { //permission is automatically granted on sdk<23 upon installation
+                Log.v(TAG,"Permission is granted");
+                return true;
+            }
+        }
+
+
+
+
+
+    }

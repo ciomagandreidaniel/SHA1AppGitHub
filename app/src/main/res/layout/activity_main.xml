@@ -63,4 +63,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
+    <Button
+        android:id="@+id/button"
+        android:layout_width="46dp"
+        android:layout_height="42dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="19dp"
+        android:onClick="captureFromCamera"
+        android:text="@string/btn_Camera"
+        app:layout_constraintBottom_toTopOf="@+id/imageView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/button2"
+        app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

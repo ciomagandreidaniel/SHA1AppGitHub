@@ -129,9 +129,9 @@ public class MainActivity extends AppCompatActivity {
                     date = intf.getAttribute(ExifInterface.TAG_DATETIME);
 
                     String idata1 = encryptThisIntegerArray(pixels);
-                    //String idata2 = encryptThisString(date);
+                    String idata2 = encryptThisString(date);
 
-                    String sha1images = encryptThisString(idata1);//+idata2);
+                    String sha1images = encryptThisString(idata1+idata2);
 
                     sha1image.setText(sha1images);
 

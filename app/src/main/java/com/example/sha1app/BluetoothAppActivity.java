@@ -332,11 +332,11 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
     public void enableDisableBT(View view)
     {
         if(bluetoothAdapter == null){
-            Toast.makeText(getApplicationContext(),"Does not have BT capabilities.",Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(),"Nu are capabilități Bluetooth!",Toast.LENGTH_SHORT).show();
         }
 
         if(!bluetoothAdapter.isEnabled()){
-            Toast.makeText(getApplicationContext(),"Enabling BT.",Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(),"Activare BT.",Toast.LENGTH_SHORT).show();
             Intent enableBTIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivity(enableBTIntent);
             IntentFilter BTIntent = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
@@ -344,7 +344,7 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
         }
 
         if(bluetoothAdapter.isEnabled()){
-            Toast.makeText(getApplicationContext(),"Disabling BT.",Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(),"Dezactivare BT.",Toast.LENGTH_SHORT).show();
             bluetoothAdapter.disable();
             IntentFilter BTIntent = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
             registerReceiver(mBroadcastReceiver1, BTIntent);
@@ -363,11 +363,11 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public void btnDiscover(View view) {
-        Toast.makeText(getApplicationContext(),"Looking for unpaired devices.",Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(),"In căutarea dispozitivelor neasociate.",Toast.LENGTH_SHORT).show();
 
         if(bluetoothAdapter.isDiscovering()){
             bluetoothAdapter.cancelDiscovery();
-            Toast.makeText(getApplicationContext(),"Canceling discovery.",Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(),"Închidere descoperire",Toast.LENGTH_SHORT).show();
             //check BT permissions in manifest
             checkBTPermissions();
             bluetoothAdapter.startDiscovery();
@@ -408,24 +408,24 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
         }
     }
 
-    //atunci cand se apasa pe un dispozitiv descoperit dupa cautare
+    //atunci când se apasa pe un dispozitiv descoperit dupa cautare
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        //first cancel discovery because its very memory intensive.
+        //se închide modul de descoperire pentru a reduce consumul de memorie
         bluetoothAdapter.cancelDiscovery();
-        Log.d(TAG, "onItemClick: You Clicked on a device.");
+        Log.d(TAG, "onItemClick: Ai apăsat pe un dispozitiv.");
         String deviceName = mBTDevices.get(i).getName();
         String deviceAddress = mBTDevices.get(i).getAddress();
-
+        //pentru verificarea semnăturii digitale în cazul unui transfer unui transfer
         phoneDeviceMAC = deviceAddress;
         btnAttachAddress.setVisibility(View.VISIBLE);
 
-        Log.d(TAG, "onItemClick: deviceName = " + deviceName);
-        Log.d(TAG, "onItemClick: deviceAddress = " + deviceAddress);
-        //create the bond.
-        //NOTE: Requires API 17+? I think this is JellyBean
+        Log.d(TAG, "onItemClick: Numele dispozitivului " + deviceName);
+        Log.d(TAG, "onItemClick: Adresa MAC a dispozitivului = " + deviceAddress);
+        //se realizează asocierea
+        //NOTE: necesită API 17+
         if(Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN_MR2){
-            Log.d(TAG, "Trying to pair with " + deviceName);
+            Log.d(TAG, "Se încearcă a se asocia cu " + deviceName);
             mBTDevices.get(i).createBond();
             mBTDevice = mBTDevices.get(i);
             mBluetoothConnection = new BluetoothConnectionService(BluetoothAppActivity.this);

@@ -2,17 +2,26 @@ package com.example.sha1app;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.FileProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.Manifest;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -23,6 +32,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -30,13 +40,21 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.UUID;
 
 
 
 public class BluetoothAppActivity extends AppCompatActivity implements AdapterView .OnItemClickListener{
+    private static final int CAMERA_REQUEST_CODE = 1;
     BluetoothAdapter bluetoothAdapter;
     private static final String TAG = "MyActivity";
 
@@ -75,6 +93,11 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
 
     //lista unde apar dispozitivele gasite de bluetooth
     ListView lvNewDevices;
+
+    //Tesing
+    private String cameraFilePath;
+    private String imgAbsPath;
+    //Testing
 
 
     // Create a BroadcastReceiver for ACTION_FOUND
@@ -521,6 +544,144 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
 
         return ret;
     }
+
+
+
+
+
+
+
+    /**Version in test
+     * Trying to take a photo with camera
+     */
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        //This is the directory in which the file will be created. This is the default location of Camera photos
+        File storageDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DCIM), "Camera");
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+        // Save a file: path for using again
+        cameraFilePath = "file://" + image.getAbsolutePath();
+        imgAbsPath = image.getAbsolutePath();
+        return image;
+    }
+
+    public void captureFromCamera(View view) {
+        if(checkCameraHardware(this)==true && isStoragePermissionGranted()==true) {
+            try {
+
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".provider", createImageFile()));
+                startActivityForResult(intent, CAMERA_REQUEST_CODE);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    /** Check if this device has a camera */
+    private boolean checkCameraHardware(Context context) {
+        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
+            // this device has a camera
+            return true;
+        } else {
+            // no camera on this device
+            return false;
+        }
+    }
+
+    public  boolean isStoragePermissionGranted()
+    {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                Log.v(TAG,"Permission is granted");
+                return true;
+            } else {
+
+                Log.v(TAG,"Permission is revoked");
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                return false;
+            }
+        }
+        else { //permission is automatically granted on sdk<23 upon installation
+            Log.v(TAG,"Permission is granted");
+            return true;
+        }
+    }
+
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        // codul returneaza RESULT_OK doar daca o imagine este selectata
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK)
+            switch (requestCode) {
+                case CAMERA_REQUEST_CODE:
+                    //imageView.setImageURI(Uri.parse(cameraFilePath));
+                    Bitmap bmp = BitmapFactory.decodeFile(imgAbsPath);
+
+                    int[] pixels = new int[bmp.getHeight()*bmp.getWidth()];
+                    bmp.getPixels(pixels,0,bmp.getWidth(),0,0,bmp.getWidth()-1,bmp.getHeight()-1);
+
+                    dataToSend = null;
+                    dataToSend = encryptThisIntegerArray(pixels);
+                    sha1BT.setText(dataToSend);
+
+                    byte[] bytes = dataToSend.getBytes(Charset.defaultCharset());
+                    mBluetoothConnection.write(bytes);
+
+                    break;
+                //testing
+            }
+
+
+
+    }
+
+    //algoritmul de criptare a sirului de intregi
+    public static String encryptThisIntegerArray(int[] input)
+    {
+        try {
+            // metoda getInstance() preia algoritmul SHA-1
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+
+            //se converteste sirul de intregi intr-unul de octeti
+            ByteBuffer byteBuffer = ByteBuffer.allocate(input.length * 4);
+            IntBuffer intBuffer = byteBuffer.asIntBuffer();
+            intBuffer.put(input);
+            byte[] array = byteBuffer.array();
+
+            // metoda digest() este apelata pentru a calcula hash-ul intrarii
+            //si returneaza un sir de octeti
+            byte[] messageDigest = md.digest(array);
+
+            // octetii se convertesc intr-o reprezentare cu semn pozitiv
+            BigInteger no = new BigInteger(1, messageDigest);
+
+            // amprenta este convertita in caractere ascii
+            String hashtext = no.toString(16);
+
+            // se adauga zerouri pentru a completa cei 32 de biti
+            while (hashtext.length() < 32) {
+                hashtext = "0" + hashtext;
+            }
+
+            // returneaza codul hash
+            return hashtext;
+        }
+
+        // pentru preluarea algoritmilor inexistenti
+        catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
 
 

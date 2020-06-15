@@ -15,5 +15,5 @@
     <string name="finish_key">Send Signature</string>
     <string name="digital_signature"></string>
     <string name="attachPhoneAddress">AttachAddress</string>
-    <string name="btn_Camera">C</string>
+    <string name="btn_Camera">CAM</string>
 </resources>

@@ -53,10 +53,6 @@ public class MainActivity extends AppCompatActivity {
     TextView dateText;
     private static final String TAG = "MyActivity";
 
-    //Tesing
-    private String cameraFilePath;
-    //Testing
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -143,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
                     String idata1 = encryptThisIntegerArray(pixels);
                     String idata2 = encryptThisString(date);
 
-                    String sha1images = encryptThisString(idata1+idata2);
+                    String sha1images = idata1;//encryptThisString(idata1+idata2);
 
                     sha1image.setText(sha1images);
 
@@ -152,11 +148,7 @@ public class MainActivity extends AppCompatActivity {
                     dateText.setText("Date: " + date);
 
                     break;
-                //testing
-                case CAMERA_REQUEST_CODE:
-                    imageView.setImageURI(Uri.parse(cameraFilePath));
-                    break;
-                    //testing
+
             }
 
 
@@ -253,73 +245,6 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(EXTRA_MESSAGE3, message3);
         startActivity(intent);
     }
-
-    /**Version in test
-     * Trying to take a photo with camera
-     */
-
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        //This is the directory in which the file will be created. This is the default location of Camera photos
-        File storageDir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DCIM), "Camera");
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-        // Save a file: path for using again
-        cameraFilePath = "file://" + image.getAbsolutePath();
-        return image;
-    }
-
-    public void captureFromCamera(View view) {
-        if(checkCameraHardware(this)==true && isStoragePermissionGranted()==true) {
-            try {
-
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".provider", createImageFile()));
-                startActivityForResult(intent, CAMERA_REQUEST_CODE);
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
-    /** Check if this device has a camera */
-    private boolean checkCameraHardware(Context context) {
-        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
-            // this device has a camera
-            return true;
-        } else {
-            // no camera on this device
-            return false;
-        }
-    }
-
-        public  boolean isStoragePermissionGranted()
-            {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                        == PackageManager.PERMISSION_GRANTED) {
-                    Log.v(TAG,"Permission is granted");
-                    return true;
-                } else {
-
-                    Log.v(TAG,"Permission is revoked");
-                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-                    return false;
-                }
-            }
-            else { //permission is automatically granted on sdk<23 upon installation
-                Log.v(TAG,"Permission is granted");
-                return true;
-            }
-        }
-
-
-
 
 
     }

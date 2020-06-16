@@ -11,7 +11,7 @@
     <string name="enabledisc_key">Discoverability</string>
     <string name="discover_key">Discover</string>
     <string name="startconnection_key">Start connection</string>
-    <string name="sendbutton_key">Send</string>
+    <string name="sendbutton_key">Verify</string>
     <string name="finish_key">Send Signature</string>
     <string name="digital_signature"></string>
     <string name="attachPhoneAddress">AttachAddress</string>

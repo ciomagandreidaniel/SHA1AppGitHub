@@ -17,6 +17,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -50,7 +51,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
-
+import java.util.concurrent.TimeUnit;
 
 
 public class BluetoothAppActivity extends AppCompatActivity implements AdapterView .OnItemClickListener{
@@ -97,6 +98,8 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
     //Tesing
     private String cameraFilePath;
     private String imgAbsPath;
+    private static final int addSignature = 4;
+    private static final int veirfySignature = 7;
     //Testing
 
 
@@ -299,7 +302,7 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
             String text = intent.getStringExtra("theMessage");
             signature.append(text);
             digitalSignature.setText(signature.toString());
-            if( signature.toString().equals("Valid Signature")) {
+            if( signature.toString().equals("Valid Signature") || signature.toString().equals("Digital signature added")) {
                 digitalSignature.setBackgroundColor(Color.GREEN);
                 //btnSendSignature.setVisibility(View.VISIBLE);
             }
@@ -318,13 +321,17 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
     }
 
     //trimiterea datelor prin apasarea butonului Send
-    public void sendd(View view)
-    {
+    public void sendd(View view) throws InterruptedException {
         if(dataToSend == null)
         {
             Toast.makeText(getApplicationContext(),"Please select a photo",Toast.LENGTH_SHORT).show();
         }
         else {
+            byte[] bytes1 = {(byte) veirfySignature};
+            mBluetoothConnection.write(bytes1);
+
+            TimeUnit.SECONDS.sleep(1);
+
             byte[] bytes = dataToSend.getBytes(Charset.defaultCharset());
             mBluetoothConnection.write(bytes);
             Toast.makeText(getApplicationContext(), "The hash value has been sent", Toast.LENGTH_SHORT).show();
@@ -577,6 +584,8 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
         if(checkCameraHardware(this)==true && isStoragePermissionGranted()==true) {
             try {
 
+                byte[] bytes = {(byte) addSignature};
+                mBluetoothConnection.write(bytes);
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".provider", createImageFile()));
                 startActivityForResult(intent, CAMERA_REQUEST_CODE);
@@ -630,7 +639,26 @@ public class BluetoothAppActivity extends AppCompatActivity implements AdapterVi
                     bmp.getPixels(pixels,0,bmp.getWidth(),0,0,bmp.getWidth()-1,bmp.getHeight()-1);
 
                     dataToSend = null;
-                    dataToSend = encryptThisIntegerArray(pixels);
+
+                    String date;
+
+                    ExifInterface intf = null;
+                    try {
+                        intf = new ExifInterface(imgAbsPath);
+                    } catch(IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    if(intf == null) {
+                        date = "nu are data";
+                    }
+
+
+                    date = intf.getAttribute(ExifInterface.TAG_DATETIME);
+
+                    String nDate = "Date: " + date;
+
+                    dataToSend = encryptThisIntegerArray(pixels)+"..."+nDate;
                     sha1BT.setText(dataToSend);
 
                     byte[] bytes = dataToSend.getBytes(Charset.defaultCharset());
